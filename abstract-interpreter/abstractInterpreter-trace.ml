@@ -1,0 +1,66 @@
+(* file abstractInterpreter.ml  © P. Cousot 2021 *)
+
+open AbstractDomain
+open AbstractSyntax
+open AbstractProperty
+open Printer (* for trace *)
+
+let rec lfp a f leq = let fa = f a in
+                         if leq fa a then fa else lfp fa f leq
+
+let leq x y = match x, y with
+   | (While (b, sb, (at,atP,af,afP,es,br,brP))),
+        (While (b', sb', (at',atP',af',afP',es',br',brP'))) ->
+           (leq atP atP') && (leq afP afP') && (leq brP brP')
+   | _,_ -> failwith "abstractInterpreter: incorrect leq argument"
+
+let rec fWhile r0 x = match x with
+   | (While (b, sb, (at,xl,af,afP,es,br,brP))) ->
+        print_string "\n[iteration:\n"; print_labelled_node x 0; (* iteration trace *)
+        let sb' = abstractInterpreter sb (test b xl) in
+           let afP' = property_after sb' and brP' = property_break sb' in
+              let atP = join r0 afP' in
+                 let afP = join (nottest b atP) brP' in
+                    let res = While (b, sb', (at,atP,af,afP,es,br,bot)) in
+                       print_string "\n->\n"; print_labelled_node res 0; print_string "\n]\n";
+                       res
+   | _ -> failwith "abstractInterpreter: incorrect fWhile argument"
+and abstractInterpreter s r0 = match s with 
+   | Prog (sl, (at,atP,af,afP,es,br,brP)) -> 
+        let sl',atP',afP',brP' = abstractInterpreterStmtlist sl r0 in 
+            Prog (sl', (at,atP',af,afP',es,br,bot))
+   | Assign (v, a, (at,atP,af,afP,es,br,brP)) -> 
+        let afP' = assign v a r0 in
+           Assign (v, a, (at,r0,af,afP',es,br,bot))
+   | Emptystmt (at,atP,af,afP,es,br,brP) -> 
+        Emptystmt (at,r0,af,r0,es,br,bot)
+   | If (b, st, (at,atP,af,afP,es,br,brP)) -> 
+        let st' = abstractInterpreter st (test b r0) in
+           let afP' = property_after st' and brP' = property_break st' in
+              let afP'' = join afP' (nottest b r0) in
+                 If (b, st', (at,r0,af,afP'',es,br,brP'))
+   | Ifelse (b, st, se, (at,atP,af,afP,es,br,brP)) -> 
+        let st' = abstractInterpreter st (test b r0)
+        and se' = abstractInterpreter se (nottest b r0) in
+           let afP' = property_after st' and brP' = property_break st'
+           and afP'' = property_after se' and brP'' = property_break se' in
+              let afP''' = join afP' afP'' and brP''' = join brP' brP'' in 
+                 Ifelse (b, st', se', (at,r0,af,afP''',es,br,brP'''))
+   | Break (at,atP,af,afP,es,br,brP) -> 
+        Break (at,r0,af,bot,es,br,r0)
+   | While (b, sb, (at,atP,af,afP,es,br,brP)) -> 
+        let wbot = (While (b, sb, (at,bot,af,bot,es,br,bot))) in
+           lfp wbot (fWhile r0) leq
+   | Stmtlist (sl, (at,atP,af,afP,es,br,brP)) -> 
+        let sl',atP',afP',brP' = abstractInterpreterStmtlist sl r0 in
+            Stmtlist (sl', (at,atP',af,afP',es,br,brP'))
+and abstractInterpreterStmtlist sl r0 = match sl with 
+   | [] -> [],r0,r0,bot
+   | [s] -> 
+        let s' = abstractInterpreter s r0 in
+           [s'],property_at s',property_after s',property_break s'
+   | s :: sl' ->
+        let sl'',atP',afP'',brP'' = abstractInterpreterStmtlist sl' r0 in
+           let s' = abstractInterpreter s afP'' in
+              let brP = join (property_break s') brP'' in
+                 s' :: sl'',atP',(property_after s'),brP
