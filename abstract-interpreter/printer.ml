@@ -10,6 +10,8 @@ let rec string_of_aexpr a = match a with
 | Var v -> v
 | Minus (a1, a2) -> "("^(string_of_aexpr a1)^" - "^(string_of_aexpr a2)^")"
 | Plus (a1, a2)  -> "("^(string_of_aexpr a1)^" + "^(string_of_aexpr a2)^")"
+| Div (a1, a2)   -> "("^(string_of_aexpr a1)^" / "^(string_of_aexpr a2)^")"
+
 
 let print_aexpr a = print_string (string_of_aexpr a)
 

@@ -204,5 +204,14 @@ module Sign_Domain = struct
   let filter_neq s1 s2 = (s1, s2) 
   let filter_geq s1 s2 = (s1, s2)
   let filter_leq s1 s2 = (s1, s2)
+  let div s1 s2 = match s1, s2 with
+  | Bottom, _ | _, Bottom -> Bottom
+  | _, Zero -> Top  (* division by zero *)
+  | Zero, _ -> Zero
+  | Pos, Pos -> PosZero
+  | Neg, Neg -> PosZero
+  | Pos, Neg -> NegZero
+  | Neg, Pos -> NegZero
+  | _ -> Top
 end
 

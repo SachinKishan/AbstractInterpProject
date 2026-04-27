@@ -54,7 +54,7 @@ module AbstractProperty = struct
       let s' = VariableMap.remove x s in  
       let s'' = VariableMap.map (fun ys -> List.filter (fun z -> z <> x) ys) s' in
       match a with
-      | Minus (Var y, Num i) ->
+      | Minus (Var y, Num i) | Minus (Num i, Var y) ->
         if i > 0 then
           let y_bounds = match VariableMap.find_opt y s'' with
                          | Some ys -> ys
@@ -70,7 +70,7 @@ module AbstractProperty = struct
                          | Some ys -> ys
                          | None -> [] in
           VariableMap.add x y_bounds s''
-      | Plus (Var y, Num i) ->
+      | Plus (Var y, Num i) | Plus (Num i, Var y) ->
         if y = x && i>0 then s'
         else if y = x && i=0 then s
         else if y = x && i<0 then s''
@@ -89,7 +89,6 @@ module AbstractProperty = struct
                          | Some ys -> ys
                          | None -> [] in
           VariableMap.add x y_bounds s''
-
       | Var y ->
         let y_bounds = match VariableMap.find_opt y s'' with
                        | Some ys -> ys
@@ -97,9 +96,7 @@ module AbstractProperty = struct
         VariableMap.add x y_bounds s''
       
       | _ -> s''
-    
-
-
+  
   let test b s = 
   if is_bot s then bot
   else 

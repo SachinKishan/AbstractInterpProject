@@ -29,11 +29,28 @@ x=1; y= x; z=x+y;
 ```
 +
 -
-* tbd
-/ tbd
+/ 
 ```
 
-3.  
+3. Branching statements
+```
+if
+{
+    ...
+}
+else
+{
+    ...
+}
+```
+
+4. While
+```
+while(<condition>)
+{
+    ...
+}
+```
 
 ## Setting up your script to analyse
 
@@ -107,6 +124,11 @@ cat myprogram.txt | ./analyzer --pentagon
 
 Here are some examples highlighting the features of the interpreter, as well as the differences between the pentagon and interval domains.
 
+
+1. Binary search
+2. Comparing pentagon and interval domains
+3. Some nice features implemented in the pentagons domain
+4. The limits of the pentagons domain
 
 ## Other domains
 Sign, Concrete and Sub domains are also available for use if desired.

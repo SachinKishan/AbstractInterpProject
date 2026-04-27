@@ -1,1 +1,10 @@
-x=1;
+num = 0;
+num2 = 9;
+while (num < num2) {
+    index = (num + num2) / 2;
+    if (index < num2) {
+        num = index + 1;
+    } else {
+        num2 = index;
+    };
+};

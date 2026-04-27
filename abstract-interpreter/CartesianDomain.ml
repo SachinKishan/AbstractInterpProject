@@ -20,6 +20,8 @@ module type VALUE_DOMAIN = sig
   val eval_num : int -> t
   val add : t -> t -> t
   val sub : t -> t -> t
+  val div : t -> t -> t
+
   val lt : t -> t -> bool
   val gt : t -> t -> bool
   val eq : t -> t -> bool
@@ -88,6 +90,7 @@ let is_bot p = VariableMap.exists (fun _ v -> VD.leq v VD.bot && VD.leq VD.bot v
         | None -> VD.top)
     | Plus (a1,a2) -> VD.add (evala a1 r) (evala a2 r)
     | Minus (a1,a2) -> VD.sub (evala a1 r) (evala a2 r)
+    | Div (a1,a2) -> VD.div (evala a1 r) (evala a2 r)
   let assign x a p =
       let assignenvironment r = 
          (let assignvalue y v = if (y=x) then (evala a r) else v 

@@ -1,7 +1,9 @@
 (* file abstractSyntaxExpressions.ml  © P. Cousot 2021 *)
 
 type variable = string
-type aexpr = Num of int | Var of string | Minus of aexpr * aexpr | Plus of aexpr * aexpr
+(* type aexpr = Num of int | Var of string | Minus of aexpr * aexpr | Plus of aexpr * aexpr *)
+type aexpr = Num of int | Var of string | Minus of aexpr * aexpr | Plus of aexpr * aexpr | Div of aexpr * aexpr
+
 type bexpr = Lt of aexpr * aexpr | Eq of aexpr * aexpr | Neq of aexpr * aexpr |Gt of aexpr * aexpr | Nand of bexpr * bexpr
 
 (* varsa : aexpr -> variable list *)
@@ -11,6 +13,8 @@ let varsa a =
       | Var x -> [x]
       | Minus (a1,a2) -> (collecta a1)@(collecta a2)
       | Plus (a1,a2) -> (collecta a1)@(collecta a2)
+      | Div (a1,a2) -> (collecta a1)@(collecta a2)
+
    and cmp x y = if x=y then 0
                  else if x<y then 1
                  else -1

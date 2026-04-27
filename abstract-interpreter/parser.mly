@@ -8,7 +8,7 @@ open AbstractSyntax
 
 %} /* declarations */
 
-%token PLUS MINUS LT EQ NEQ GT NAND LPAREN RPAREN ASSIGN /* lexer tokens */
+%token PLUS MINUS DIV LT EQ NEQ GT NAND LPAREN RPAREN ASSIGN /* lexer tokens */
 %token SEMICOLON IF ELSE WHILE BREAK LBRACKET RBRACKET END
 %token <string> IDENT
 %token <int> NUM
@@ -17,6 +17,7 @@ open AbstractSyntax
 %nonassoc ELSE       /* evaluated fourth */
 %left NAND           /* evaluated third */
 %left PLUS MINUS     /* evaluated second */
+%left DIV            /* evaluated first (higher than plus/minus) */
 %nonassoc UMINUS     /* evaluated first */
 
 %start prog          /* the grammar entry point */
@@ -52,6 +53,7 @@ aexpr:
   | a1 = aexpr MINUS a2 = aexpr            { Minus (a1, a2) }
   | MINUS a = aexpr                        { Minus ((Num 0), a) } %prec UMINUS
   | LPAREN a = aexpr RPAREN                { a } 
+  | a1 = aexpr DIV a2 = aexpr { Div (a1, a2) }
 
 bexpr:
   | a1 = aexpr LT a2 = aexpr               { Lt (a1, a2) }

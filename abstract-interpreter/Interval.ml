@@ -27,6 +27,19 @@ let compare_bounds b1 b2 =
   | Int x, Int y -> compare x y
 
 (* meant for lattice operations, is a property used in AbstractProperty *)
+
+let div_bound b1 b2 = match b1, b2 with
+  | _, Int 0 -> Pos_infinity  (* division by zero = top *)
+  | Neg_infinity, Int n -> if n > 0 then Neg_infinity else Pos_infinity
+  | Pos_infinity, Int n -> if n > 0 then Pos_infinity else Neg_infinity
+  | Int n, Pos_infinity -> Int 0
+  | Int n, Neg_infinity -> Int 0
+  | Int n, Int m -> Int (n / m)
+  | Neg_infinity, Pos_infinity -> Neg_infinity
+  | Neg_infinity, Neg_infinity -> Pos_infinity
+  | Pos_infinity, Pos_infinity -> Pos_infinity
+  | Pos_infinity, Neg_infinity -> Neg_infinity
+  
 let leq_bounds b1 b2=
     match (b1,b2) with
         | (Neg_infinity,Neg_infinity) -> true
@@ -174,6 +187,21 @@ module Interval_domain = struct
    let eval_num x = Interval(Int x,Int x)
    let widen = interval_widen
    let narrow = interval_narrow
+
+   let div i1 i2 = match i1, i2 with
+  | Bottom, _ | _, Bottom -> Bottom
+  | Interval(a1, b1), Interval(a2, b2) ->
+      (* if divisor contains 0, return top *)
+      if leq_bounds a2 (Int 0) && leq_bounds (Int 0) b2 then
+        Interval(Neg_infinity, Pos_infinity)
+      else
+        (* safe to divide *)
+        let results = [
+          div_bound a1 a2; div_bound a1 b2;
+          div_bound b1 a2; div_bound b1 b2
+        ] in
+        Interval(List.fold_left min_bound Pos_infinity results,
+                 List.fold_left max_bound Neg_infinity results)
 
   let sup i = match i with
   | Bottom -> None

@@ -20,6 +20,7 @@ type token =
   | EQ
   | END
   | ELSE
+  | DIV
   | BREAK
   | ASSIGN
 

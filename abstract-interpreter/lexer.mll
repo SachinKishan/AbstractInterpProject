@@ -16,6 +16,7 @@ rule token = parse
                { NUM (int_of_string num) }
   | '+'        { PLUS }
   | '-'        { MINUS }
+  | '/'        { DIV }
   | '<'        { LT }
   | "=="       { EQ }
   | "!="       { NEQ }
