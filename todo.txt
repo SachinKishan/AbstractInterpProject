@@ -12,30 +12,4 @@ TODO
 
 ---
 
-Signature
-
-Then functor
-
-Then pass into functor with concrete module of domain
-
-module type VALUE_DOMAIN = sig
-  type t
-  val bot : t
-  val top : t
-  val leq : t -> t -> bool
-  val join : t -> t -> t
-  val eval_num : int -> t
-  val add : t -> t -> t
-  val sub : t -> t -> t
-  val lt : t -> t -> bool
-  val gt : t -> t -> bool
-  val eq : t -> t -> bool
-  val neq : t -> t -> bool
-  val to_string : t -> string
-end
-
-
-so for our Cartesian
-VALUE_DOMAIN has the Signature
-
-functor is the same? 
+Making this work on binry search

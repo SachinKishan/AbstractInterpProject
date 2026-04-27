@@ -78,39 +78,42 @@ let top = VariableMap.empty
   ) p2.upper_bounds
 
   let join p1 p2 = 
-  let bt = ID.join p1.intervals p2.intervals in
-  let s' x = 
-    let ys1 = match VariableMap.find_opt x p1.upper_bounds with Some ys -> ys | None -> [] in
-    let ys2 = match VariableMap.find_opt x p2.upper_bounds with Some ys -> ys | None -> [] in
-    List.filter (fun y -> List.mem y ys2) ys1 in
-  let s'' x =
-  let s1x = match VariableMap.find_opt x p1.upper_bounds with
-             | Some ys -> ys
-             | None -> [] in
-  List.filter (fun y ->
-    match VD.sup (lookup x p2.intervals),
-          VD.inf (lookup y p2.intervals) with
-    | Some sx, Some iy -> sx < iy
-    | _ -> false) s1x in
-  let s''' x =
-  let s2x = match VariableMap.find_opt x p2.upper_bounds with
-             | Some ys -> ys
-             | None -> [] in
-  List.filter (fun y ->
-    match VD.sup (lookup x p1.intervals),
-          VD.inf (lookup y p1.intervals) with
-    | Some sx, Some iy -> sx < iy
-    | _ -> false) s2x in
-  let all_vars = 
-    let vars1 = VariableMap.fold (fun x _ acc -> x :: acc) p1.upper_bounds [] in
-    let vars2 = VariableMap.fold (fun x _ acc -> x :: acc) p2.upper_bounds [] in
-  List.sort_uniq compare (vars1 @ vars2) in
-  let st = List.fold_left (fun acc x ->
-    let combined = List.sort_uniq compare (s' x @ s'' x @ s''' x) in
-    if combined = [] then acc
-    else VariableMap.add x combined acc
-  ) VariableMap.empty all_vars in
-  { intervals = bt; upper_bounds = st }
+  if is_bot p1 then p2
+  else if is_bot p2 then p1
+  else
+    let bt = ID.join p1.intervals p2.intervals in
+    let s' x = 
+      let ys1 = match VariableMap.find_opt x p1.upper_bounds with Some ys -> ys | None -> [] in
+      let ys2 = match VariableMap.find_opt x p2.upper_bounds with Some ys -> ys | None -> [] in
+      List.filter (fun y -> List.mem y ys2) ys1 in
+    let s'' x =
+      let s1x = match VariableMap.find_opt x p1.upper_bounds with
+                 | Some ys -> ys
+                 | None -> [] in
+      List.filter (fun y ->
+        match VD.sup (lookup x p2.intervals),
+              VD.inf (lookup y p2.intervals) with
+        | Some sx, Some iy -> sx < iy
+        | _ -> false) s1x in
+    let s''' x =
+      let s2x = match VariableMap.find_opt x p2.upper_bounds with
+                 | Some ys -> ys
+                 | None -> [] in
+      List.filter (fun y ->
+        match VD.sup (lookup x p1.intervals),
+              VD.inf (lookup y p1.intervals) with
+        | Some sx, Some iy -> sx < iy
+        | _ -> false) s2x in
+    let all_vars = 
+      let vars1 = VariableMap.fold (fun x _ acc -> x :: acc) p1.upper_bounds [] in
+      let vars2 = VariableMap.fold (fun x _ acc -> x :: acc) p2.upper_bounds [] in
+      List.sort_uniq compare (vars1 @ vars2) in
+    let st = List.fold_left (fun acc x ->
+      let combined = List.sort_uniq compare (s' x @ s'' x @ s''' x) in
+      if combined = [] then acc
+      else VariableMap.add x combined acc
+    ) VariableMap.empty all_vars in
+    { intervals = bt; upper_bounds = reduce bt st }
   
   (* let meet p1 p2 = { intervals = ID.meet p1.intervals p2.intervals; upper_bounds = UB.meet p1.upper_bounds p2.upper_bounds } *)
   let meet p1 p2 = bot

@@ -120,42 +120,70 @@ let is_bot p = VariableMap.exists (fun _ v -> VD.leq v VD.bot && VD.leq VD.bot v
    (* let nottest b p = if not (evalb b p) then p else bot *) 
 
    let test b p = 
-    match b with
-    | Lt (Var x, Var y) ->
+  match b with
+  | Lt (Var x, Var y) ->
       let vx = lookup x p and vy = lookup y p in
       let vx', vy' = VD.filter_lt vx vy in
       VariableMap.add x vx' (VariableMap.add y vy' p)
-    | Lt (Var x, Num n) ->
+  | Lt (Var x, Num n) ->
       let vx = lookup x p in
       let vx', _ = VD.filter_lt vx (VD.eval_num n) in
       VariableMap.add x vx' p
-    | Gt (Var x, Var y) ->
+  | Lt (Num n, Var y) ->
+    let vy = lookup y p in
+    let _, vy' = VD.filter_lt (VD.eval_num n) vy in
+    VariableMap.add y vy' p
+  | Gt (Var x, Var y) ->
       let vx = lookup x p and vy = lookup y p in
       let vx', vy' = VD.filter_gt vx vy in
       VariableMap.add x vx' (VariableMap.add y vy' p)
-    | Gt (Var x, Num n) ->
+  | Gt (Var x, Num n) ->
       let vx = lookup x p in
       let vx', _ = VD.filter_gt vx (VD.eval_num n) in
       VariableMap.add x vx' p
-    | Eq (Var x, Var y) ->
+  | Gt (Num n, Var y) ->
+      let vy = lookup y p in
+      let _, vy' = VD.filter_lt vy (VD.eval_num n) in
+      VariableMap.add y vy' p
+  | Eq (Var x, Var y) ->
       let vx = lookup x p and vy = lookup y p in
       let vx', vy' = VD.filter_eq vx vy in
       VariableMap.add x vx' (VariableMap.add y vy' p)
-    | Neq (Var x, Var y) ->
+  | Eq (Var x, Num n) ->
+      let vx = lookup x p in
+      let vx', _ = VD.filter_eq vx (VD.eval_num n) in
+      VariableMap.add x vx' p
+  | Neq (Var x, Var y) ->
       let vx = lookup x p and vy = lookup y p in
       let vx', vy' = VD.filter_neq vx vy in
       VariableMap.add x vx' (VariableMap.add y vy' p)
-    | _ -> if evalb b p then p else bot
+  | _ -> if evalb b p then p else bot
 
-  let nottest b p = match b with
+let nottest b p = match b with
   | Lt (Var x, Var y) ->
       let vx = lookup x p and vy = lookup y p in
-      let vx', vy' = VD.filter_geq vx vy in  (* x >= y *)
+      let vx', vy' = VD.filter_geq vx vy in
       VariableMap.add x vx' (VariableMap.add y vy' p)
+  | Lt (Var x, Num n) ->
+      let vx = lookup x p in
+      let vx', _ = VD.filter_geq vx (VD.eval_num n) in
+      VariableMap.add x vx' p
+  | Lt (Num n, Var y) ->
+      let vy = lookup y p in
+      let _, vy' = VD.filter_leq vy (VD.eval_num n) in
+      VariableMap.add y vy' p
   | Gt (Var x, Var y) ->
       let vx = lookup x p and vy = lookup y p in
-      let vx', vy' = VD.filter_leq vx vy in  (* x <= y *)
+      let vx', vy' = VD.filter_leq vx vy in
       VariableMap.add x vx' (VariableMap.add y vy' p)
+  | Gt (Var x, Num n) ->
+      let vx = lookup x p in
+      let vx', _ = VD.filter_leq vx (VD.eval_num n) in
+      VariableMap.add x vx' p
+  | Gt (Num n, Var y) ->
+      let vy = lookup y p in
+      let _, vy' = VD.filter_geq vy (VD.eval_num n) in
+      VariableMap.add y vy' p
   | _ -> if not (evalb b p) then p else bot
 
   
