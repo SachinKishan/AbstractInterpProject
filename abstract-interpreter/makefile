@@ -10,6 +10,11 @@ compile:
 	ocamllex -q lexer.mll
 	ocamlc -c abstractSyntaxExpressions.ml
 	ocamlc -c abstractDomain.mli
+	ocamlc -c Sign.ml
+	ocamlc -c Interval.ml
+	ocamlc -c CartesianDomain.ml
+	ocamlc -c Upper_bound.ml
+	ocamlc -c Pentagons.ml
 	ocamlc -c abstractDomain.ml
 	ocamlc -c abstractTree.mli
 	ocamlc -c abstractSyntax.ml
@@ -20,11 +25,10 @@ compile:
 	ocamlc -c parser.ml
 	ocamlc -c abstractInterpreter.ml
 	ocamlc -c main.ml
-	ocamlc abstractSyntaxExpressions.cmo abstractDomain.cmo abstractSyntax.cmo printer.cmo parser.cmo lexer.cmo abstractInterpreter.cmo main.cmo -o main
-
+	ocamlc abstractSyntaxExpressions.cmo Sign.cmo Interval.cmo CartesianDomain.cmo Upper_bound.cmo Pentagons.cmo abstractDomain.cmo abstractSyntax.cmo printer.cmo parser.cmo lexer.cmo abstractInterpreter.cmo main.cmo -o main
 .PHONY: examples
 .IGNORE: examples
-examples: main
+examples: analyzer
 	@echo "*** using the forward abstract interpreter:"
 	@echo "**************************************************"
 	@echo "*** ;"	
@@ -131,3 +135,38 @@ help:
 	@echo "make clean: delete all auxiliary files"
 	@echo "make help: this help"
 	@echo "******************************************************************"
+
+main_interval:
+	cp abstractDomain_interval.ml abstractDomain.ml
+	$(MAKE) compile
+	cp main main_interval
+
+main_sign:
+	cp abstractDomain_sign.ml abstractDomain.ml
+	$(MAKE) compile
+	cp main main_sign
+
+main_pentagon:
+	cp abstractDomain_pentagon.ml abstractDomain.ml
+	$(MAKE) compile
+	cp main main_pentagon
+
+main_sub:
+	cp abstractDomain_sub.ml abstractDomain.ml
+	$(MAKE) compile
+	cp main main_sub
+
+
+analyzer: main_interval main_sign main_pentagon main_sub
+	@echo '#!/bin/bash' > analyzer
+	@echo 'case "$$1" in' >> analyzer
+	@echo '  --sign)     shift; ./main_sign "$$@" ;;' >> analyzer
+	@echo '  --pentagon) shift; ./main_pentagon "$$@" ;;' >> analyzer
+	@echo '  --sub) shift; ./main_sub "$$@" ;;' >> analyzer
+	@echo '  *)          ./main_interval "$$@" ;;' >> analyzer
+	@echo 'esac' >> analyzer
+	chmod +x analyzer
+
+.PHONY: all compile examples nonterminating clean help main_interval main_sign main_pentagon main_sub analyzer
+.PHONY: all
+all: clean main_interval main_sign main_pentagon main_sub analyzer examples

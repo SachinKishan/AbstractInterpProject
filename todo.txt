@@ -1,0 +1,41 @@
+TODO
+1. Implement the Cartesian abstract domain functor. X
+2. Implement an abstract domain abstracting sets of integers values by their signs (as in class 01) and pass it as a parameter of the Cartesian abstract domain functor. X
+3. Modify the abstract interpreter to include widening and narrowing operations. X
+4. Enrich your Cartesian abstract domain functor with widening/narrowing. X
+5. Implement an abstract domain abstracting sets of integers values by intervals (or you can use the intervals (boxes) numerical domains of Apron Numerical Abstract Domain Library or the ETH library for numerical analysis). X
+6. Implement the interval analysis by passing the interval domains to the Cartesian productuct functor. X
+7. Implement the pentagon abstract domain (and pass it as a parameter to the abstract interpreter thus replacing the Cartesian abstraction).
+8. Check the pentagon domain on the BinarySearch program on page 3 of Francesco Logozzo, Manuel Fähndrich: Pentagons: A weakly relational abstract domain for the efficient validation of array accesses. Sci. Comput. Program. 75(9): 796-807 (2010) .
+9. Prepare a user manuel explaining how to use your analyzer with the interval and the pentagon abstract domains. Include examples.
+10. Send the compressed files with a 2 to 5 pages user manual including examples with subject AI: project 2026 to the grader Daniel Feldan, dnf9183@nyu.edu (with copy to the instructor pmc309@nyu.edu).
+
+---
+
+Signature
+
+Then functor
+
+Then pass into functor with concrete module of domain
+
+module type VALUE_DOMAIN = sig
+  type t
+  val bot : t
+  val top : t
+  val leq : t -> t -> bool
+  val join : t -> t -> t
+  val eval_num : int -> t
+  val add : t -> t -> t
+  val sub : t -> t -> t
+  val lt : t -> t -> bool
+  val gt : t -> t -> bool
+  val eq : t -> t -> bool
+  val neq : t -> t -> bool
+  val to_string : t -> string
+end
+
+
+so for our Cartesian
+VALUE_DOMAIN has the Signature
+
+functor is the same? 

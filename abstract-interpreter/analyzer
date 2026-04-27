@@ -1,0 +1,7 @@
+#!/bin/bash
+case "$1" in
+  --sign)     shift; ./main_sign "$@" ;;
+  --pentagon) shift; ./main_pentagon "$@" ;;
+  --sub) shift; ./main_sub "$@" ;;
+  *)          ./main_interval "$@" ;;
+esac

@@ -12,4 +12,6 @@ module AbstractProperty : sig
     val test : bexpr -> t -> t
     val nottest : bexpr -> t -> t
     val stringofaP : t -> string
+    val widen : t->t->t
+    val narrow : t->t->t
 end
