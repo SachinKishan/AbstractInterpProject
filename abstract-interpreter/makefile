@@ -122,8 +122,6 @@ nonterminating:
 .PHONY: clean
 clean: 
 	@/bin/rm -f main *~ .*~ *.cmo *.cmi lexer.ml parser.ml parser.mli parser.conflicts
-# erase all symbolic links
-#	@find . -lname '*.*' -delete
 
 .PHONY: help
 help:

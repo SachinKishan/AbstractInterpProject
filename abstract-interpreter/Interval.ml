@@ -26,10 +26,8 @@ let compare_bounds b1 b2 =
   | _, Pos_infinity -> -1
   | Int x, Int y -> compare x y
 
-(* meant for lattice operations, is a property used in AbstractProperty *)
-
 let div_bound b1 b2 = match b1, b2 with
-  | _, Int 0 -> Pos_infinity  (* division by zero = top *)
+  | _, Int 0 -> Pos_infinity  
   | Neg_infinity, Int n -> if n > 0 then Neg_infinity else Pos_infinity
   | Pos_infinity, Int n -> if n > 0 then Pos_infinity else Neg_infinity
   | Int n, Pos_infinity -> Int 0
@@ -111,25 +109,25 @@ let add_interval i1 i2=
 
 
 
-let interval_lt i1 i2= 
+let lt_interval i1 i2= 
     match (i1,i2) with
     | (_,Bottom) -> false
     | (Bottom,_) -> false
     |  (Interval(a1,b1),Interval(a2,b2)) -> (compare_bounds b1 a2) < 0
  
-let interval_gt i1 i2= 
+let gt_interval i1 i2= 
     match (i1,i2) with
     | (_,Bottom) -> false
     | (Bottom,_) -> false
     |  (Interval(a1,b1),Interval(a2,b2)) -> (compare_bounds a1 b2) > 0
 
-let interval_eq i1 i2= 
+let eq_interval i1 i2= 
     match (i1,i2) with
     | (_,Bottom) -> false
     | (Bottom,_) -> false
     |  (Interval(a1,b1),Interval(a2,b2)) -> (compare_bounds a1 a2) = 0 && (compare_bounds b1 b2) = 0
  
-let interval_neq i1 i2 = interval_lt i1 i2 || interval_gt i1 i2
+let neq_interval i1 i2 = lt_interval i1 i2 || gt_interval i1 i2
 
 let string_of_bound b = match b with
         | Neg_infinity -> "-inf"
@@ -141,7 +139,7 @@ let string_of_interval i = match i with
         | Interval(a, b) -> 
             "[" ^ string_of_bound a ^ "," ^ string_of_bound b ^ "]"
 
-let interval_widen i1 i2 =
+let widen_interval i1 i2 =
     match (i1, i2) with
     | (Bottom, _) -> i2
     | (_, Bottom) -> i1
@@ -150,7 +148,7 @@ let interval_widen i1 i2 =
         let b = if b2 > b1 then Pos_infinity else b1 in
         Interval(a, b)
 
-let interval_narrow i1 i2 = 
+let narrow_interval i1 i2 = 
     match (i1,i2) with 
     | (Bottom, _) -> Bottom
     | (_, Bottom) -> Bottom
@@ -159,7 +157,7 @@ let interval_narrow i1 i2 =
         let b = if b1 = Pos_infinity then b2 else b1 in
         Interval (a,b)
 
-let interval_meet i1 i2 = 
+let meet_interval i1 i2 = 
   match (i1, i2) with 
   | (Bottom, _) -> Bottom
   | (_, Bottom) -> Bottom
@@ -174,28 +172,27 @@ module Interval_domain = struct
    let leq = leq_interval
    let add = add_interval
    let sub = sub_interval
-   let lt = interval_lt
-   let gt = interval_gt
-   let eq = interval_eq
-   let neq = interval_neq
+   let lt = lt_interval
+   let gt = gt_interval
+   let eq = eq_interval
+   let neq = neq_interval
    let to_string = string_of_interval
    let initial = Interval(Int 0, Int 0) 
-   (* let initial = Interval (Neg_infinity,Pos_infinity) *)
+
    let bot = Bottom
    let top = top_interval
    let join = join_interval
+   let meet = meet_interval 
    let eval_num x = Interval(Int x,Int x)
-   let widen = interval_widen
-   let narrow = interval_narrow
+   let widen = widen_interval
+   let narrow = narrow_interval
 
    let div i1 i2 = match i1, i2 with
   | Bottom, _ | _, Bottom -> Bottom
   | Interval(a1, b1), Interval(a2, b2) ->
-      (* if divisor contains 0, return top *)
       if leq_bounds a2 (Int 0) && leq_bounds (Int 0) b2 then
         Interval(Neg_infinity, Pos_infinity)
       else
-        (* safe to divide *)
         let results = [
           div_bound a1 a2; div_bound a1 b2;
           div_bound b1 a2; div_bound b1 b2
@@ -218,7 +215,6 @@ let inf i = match i with
 let filter_lt i1 i2 = match i1, i2 with
   | Bottom, _ | _, Bottom -> (Bottom, Bottom)
   | Interval(a1, b1), Interval(a2, b2) ->
-      (* x < y: cap x's upper bound at sup(y)-1, cap y's lower bound at inf(x)+1 *)
       let b1' = match sup i2 with
                 | Some n -> min_bound b1 (Int (n-1))
                 | None -> b1 in
@@ -231,14 +227,16 @@ let filter_lt i1 i2 = match i1, i2 with
 
 
 let filter_eq i1 i2 =
-  let i' = interval_meet i1 i2 in
+  let i' = meet_interval i1 i2 in
   (i', i')
+
+
 
 let filter_neq i1 i2 =
   match i1, i2 with
   | Bottom, _ | _, Bottom -> (Bottom, Bottom)
   | _ ->
-      let meet = interval_meet i1 i2 in
+      let meet = meet_interval i1 i2 in
       if meet = i1 && meet = i2 then (Bottom, Bottom)
       else (i1, i2)  
 
@@ -259,10 +257,10 @@ let filter_geq i1 i2 = match i1, i2 with
   | Bottom, _ | _, Bottom -> (Bottom, Bottom)
   | Interval(a1, b1), Interval(a2, b2) ->
       let a1' = match inf i2 with
-                | Some n -> max_bound a1 (Int n)  (* x >= inf(y) *)
+                | Some n -> max_bound a1 (Int n)  
                 | None -> a1 in
       let b2' = match sup i1 with
-                | Some n -> min_bound b2 (Int n)  (* y <= sup(x) *)
+                | Some n -> min_bound b2 (Int n)
                 | None -> b2 in
       let i1' = if a1' > b1 then Bottom else Interval(a1', b1) in
       let i2' = if a2 > b2' then Bottom else Interval(a2, b2') in

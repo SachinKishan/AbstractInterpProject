@@ -21,15 +21,15 @@ module MakePentagon (VD : INTERVAL_DOMAIN) = struct
     upper_bounds : UB.t
   }
 
-let lookup x b = 
-  match CartesianDomain.VariableMap.find_opt x b with
-  | Some v -> v
-  | None -> VD.top
+  let lookup x b = 
+    match CartesianDomain.VariableMap.find_opt x b with
+    | Some v -> v
+    | None -> VD.top
   
 
   let bot = { intervals = ID.bot; upper_bounds = UB.bot }
 
-let top = VariableMap.empty
+  let top = VariableMap.empty
 
   let is_bot p = 
   ID.leq p.intervals ID.bot || 
@@ -115,31 +115,31 @@ let top = VariableMap.empty
     ) VariableMap.empty all_vars in
     { intervals = bt; upper_bounds = reduce bt st }
   
-  (* let meet p1 p2 = { intervals = ID.meet p1.intervals p2.intervals; upper_bounds = UB.meet p1.upper_bounds p2.upper_bounds } *)
-  let meet p1 p2 = bot
+  let meet p1 p2 = { intervals = ID.meet p1.intervals p2.intervals; upper_bounds = UB.meet p1.upper_bounds p2.upper_bounds }
+  (* let meet p1 p2 = bot *)
   let widen p1 p2 = { intervals = ID.widen p1.intervals p2.intervals; upper_bounds = UB.widen p1.upper_bounds p2.upper_bounds }
   let narrow p1 p2 = { intervals = ID.narrow p1.intervals p2.intervals; upper_bounds = UB.narrow p1.upper_bounds p2.upper_bounds }
 
 
   let assign x a p =
-  if is_bot p then bot
-  else
+    if is_bot p then bot
+    else
       let intervals' = ID.assign x a p.intervals in
       let upper_bounds' = UB.assign x a p.upper_bounds in
       { intervals = intervals'; upper_bounds = reduce intervals' upper_bounds' }
 
   let test b p =
-  let intervals' = ID.test b p.intervals in
-  let upper_bounds' = UB.test b p.upper_bounds in
-  { intervals = intervals'; upper_bounds = reduce intervals' upper_bounds' }
+    let intervals' = ID.test b p.intervals in
+      let upper_bounds' = UB.test b p.upper_bounds in
+       { intervals = intervals'; upper_bounds = reduce intervals' upper_bounds' }
 
   let nottest b p =
-  let intervals' = ID.nottest b p.intervals in
-  let upper_bounds' = UB.nottest b p.upper_bounds in
-  { intervals = intervals'; upper_bounds = reduce intervals' upper_bounds' }
+    let intervals' = ID.nottest b p.intervals in
+      let upper_bounds' = UB.nottest b p.upper_bounds in
+        { intervals = intervals'; upper_bounds = reduce intervals' upper_bounds' }
 
   let stringofaP p =
-  ID.stringofaP p.intervals ^ " " ^ UB.stringofaP p.upper_bounds
+    ID.stringofaP p.intervals ^ " " ^ UB.stringofaP p.upper_bounds
 
 
 end

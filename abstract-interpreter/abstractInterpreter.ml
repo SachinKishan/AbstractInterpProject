@@ -28,11 +28,12 @@ let narrow_while x y = match x, y with
 let rec lfp a f leq = let fa = f a in
                          if leq fa a then fa else lfp fa f leq
 
-let leq x y = match x, y with
-   | (While (b, sb, (at,atP,af,afP,es,br,brP))),
-        (While (b', sb', (at',atP',af',afP',es',br',brP'))) ->
-           (leq atP atP') && (leq afP afP') && (leq brP brP')
-   | _,_ -> failwith "abstractInterpreter: incorrect leq argument"
+
+(* let leq x y = match x, y with *)
+(*   | (While (b, sb, (at,atP,af,afP,es,br,brP))), *)
+(*        (While (b', sb', (at',atP',af',afP',es',br',brP'))) -> *)
+(*           (leq atP atP') && (leq afP afP') && (leq brP brP') *)
+(*   | _,_ -> failwith "abstractInterpreter: incorrect leq argument" *)
 
 let leq_prop = AbstractProperty.leq
 
@@ -41,7 +42,6 @@ let leq x y = match x, y with
         (While (b', sb', (at',atP',af',afP',es',br',brP'))) ->
            (leq_prop atP atP') && (leq_prop afP afP') && (leq_prop brP brP')
    | _,_ -> failwith "abstractInterpreter: incorrect leq argument"
-
 
 let rec fWhile r0 x = match x with
    | (While (b, sb, (at,xl,af,afP,es,br,brP))) ->
@@ -76,6 +76,7 @@ and abstractInterpreter s r0 = match s with
    | Break (at,atP,af,afP,es,br,brP) -> 
         Break (at,r0,af,bot,es,br,r0)
    
+   (* While but without narrowing and widening *)
    (* | While (b, sb, (at,atP,af,afP,es,br,brP)) -> *)
    (*     let wbot = (While (b, sb, (at,bot,af,bot,es,br,bot))) in *)
    (*        let (While (b, sb, (at,atP,af,afP,es,br,brP))) = *)

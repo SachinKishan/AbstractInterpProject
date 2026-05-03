@@ -8,6 +8,16 @@ Pos
 | Bottom
 | NotZero
 
+let sign_div s1 s2 = match s1, s2 with
+  | Bottom, _ | _, Bottom -> Bottom
+  | _, Zero -> Top  
+  | Zero, _ -> Zero
+  | Pos, Pos -> PosZero
+  | Neg, Neg -> PosZero
+  | Pos, Neg -> NegZero
+  | Neg, Pos -> NegZero
+  | _ -> Top
+
 let sign_plus s1 s2 =
   match (s1, s2) with
   | (Bottom, _)       -> Bottom
@@ -50,14 +60,14 @@ let sign_minus s1 s2 =
   | (_, Top)           -> Top
   | (Top, _)           -> Top
   | (x, Zero)          -> x
-  | (Zero, Zero)       -> Zero        (* already caught above, but explicit *)
+  | (Zero, Zero)       -> Zero        
   | (Zero, Pos)        -> Neg
   | (Zero, PosZero)    -> NegZero
   | (Zero, Neg)        -> Pos
   | (Zero, NegZero)    -> PosZero
   | (Zero, NotZero)    -> NotZero
   | (Pos, Pos)         -> Top
-  | (Pos, PosZero)     -> PosZero     (* pos - (>=0) could be neg, zero, pos *)
+  | (Pos, PosZero)     -> PosZero     
   | (Pos, Neg)         -> Pos
   | (Pos, NegZero)     -> Pos
   | (Pos, NotZero)     -> Top
@@ -188,6 +198,7 @@ module Sign_Domain = struct
 
   let add = sign_plus
   let sub = sign_minus
+  let div = sign_div
   let lt = sign_lt
   let gt = sign_gt
   let eq = sign_eq
@@ -204,14 +215,6 @@ module Sign_Domain = struct
   let filter_neq s1 s2 = (s1, s2) 
   let filter_geq s1 s2 = (s1, s2)
   let filter_leq s1 s2 = (s1, s2)
-  let div s1 s2 = match s1, s2 with
-  | Bottom, _ | _, Bottom -> Bottom
-  | _, Zero -> Top  (* division by zero *)
-  | Zero, _ -> Zero
-  | Pos, Pos -> PosZero
-  | Neg, Neg -> PosZero
-  | Pos, Neg -> NegZero
-  | Neg, Pos -> NegZero
-  | _ -> Top
+  
 end
 

@@ -1,7 +1,6 @@
 open AbstractSyntaxExpressions
 open CartesianDomain
 
-(* module VariableMap = Map.Make(String) *)
 module VariableMap = CartesianDomain.VariableMap
 
 
@@ -11,11 +10,11 @@ module AbstractProperty = struct
   let bot = VariableMap.add "__bot__" ["__bot__"] VariableMap.empty
   
   let is_bot s = 
-  let result = VariableMap.exists (fun x ys -> 
-    List.exists (fun y ->
-      match VariableMap.find_opt y s with
-      | Some zs -> List.mem x zs
-      | None -> false) ys) s in result
+    let result = VariableMap.exists (fun x ys -> 
+      List.exists (fun y ->
+        match VariableMap.find_opt y s with
+        | Some zs -> List.mem x zs
+        | None -> false) ys) s in result
   
   let leq s1 s2 =
     if is_bot s1 then true
@@ -89,13 +88,26 @@ module AbstractProperty = struct
                          | Some ys -> ys
                          | None -> [] in
           VariableMap.add x y_bounds s''
-      | Var y ->
+      | Div (Var y, Num i) ->
+        if i > 1 then
+          let y_bounds = match VariableMap.find_opt y s'' with
+                     | Some ys -> ys
+                     | None -> [] in
+          VariableMap.add x (y :: y_bounds) s''
+        else if i = 1 then
+          let y_bounds = match VariableMap.find_opt y s'' with
+                     | Some ys -> ys
+                     | None -> [] in
+          VariableMap.add x y_bounds s''
+        else s''  
+     | Div (Num i, Var y) -> s''
+     | Div (Var y, Var z) -> s''
+     | Var y ->
         let y_bounds = match VariableMap.find_opt y s'' with
                        | Some ys -> ys
                        | None -> [] in
         VariableMap.add x y_bounds s''
-      
-      | _ -> s''
+     | _ -> s''
   
   let test b s = 
   if is_bot s then bot
@@ -111,16 +123,6 @@ module AbstractProperty = struct
       let new_bounds = List.sort_uniq compare (y :: x_bounds @ y_bounds) in
       VariableMap.add x new_bounds s
     | _ -> s
-
-  let nottest b s = 
-    if is_bot s then bot
-    else match b with
-      | Lt (Var x, Var y) ->
-           let ys = match VariableMap.find_opt x s with
-                  | Some ys -> List.filter (fun z -> z <> y) ys
-                  | None -> [] in
-          VariableMap.add x ys s
-      | _ -> s
 
   let nottest b s = 
   if is_bot s then bot

@@ -17,6 +17,7 @@ module type VALUE_DOMAIN = sig
   val top : t
   val leq : t -> t -> bool
   val join : t -> t -> t
+  val meet : t->t->t
   val eval_num : int -> t
   val add : t -> t -> t
   val sub : t -> t -> t
@@ -37,6 +38,8 @@ module type VALUE_DOMAIN = sig
   val filter_neq : t -> t -> t * t
   val filter_geq : t -> t -> t * t  (* x >= y *)
   val filter_leq : t -> t -> t * t  (* x <= y *)
+
+
 end
 
 
@@ -51,15 +54,15 @@ module MakeDomain (VD : VALUE_DOMAIN) = struct
     ) m1
 
 
-    let lookup x p =
-  match VariableMap.find_opt x p with
-  | Some v -> v
-  | None -> VD.top
+  let lookup x p =
+    match VariableMap.find_opt x p with
+    | Some v -> v
+    | None -> VD.top
 
-let update x v p =
-  VariableMap.add x v p
+  let update x v p =
+    VariableMap.add x v p
 
-let is_bot p = VariableMap.exists (fun _ v -> VD.leq v VD.bot && VD.leq VD.bot v) p
+  let is_bot p = VariableMap.exists (fun _ v -> VD.leq v VD.bot && VD.leq VD.bot v) p
 
   let leq m1 m2 = 
     if VariableMap.is_empty m2 && not (VariableMap.is_empty m1) then false
@@ -72,6 +75,13 @@ let is_bot p = VariableMap.exists (fun _ v -> VD.leq v VD.bot && VD.leq VD.bot v
   let join m1 m2 = VariableMap.merge (fun _ v1 v2 ->
       match (v1, v2) with
       | (Some a, Some b) -> Some (VD.join a b)
+      | (Some a, None) -> Some a
+      | (None, Some b) -> Some b
+      | (None, None) -> None) m1 m2
+
+  let meet m1 m2 = VariableMap.merge (fun _ v1 v2 ->
+      match (v1, v2) with
+      | (Some a, Some b) -> Some (VD.meet a b)
       | (Some a, None) -> Some a
       | (None, Some b) -> Some b
       | (None, None) -> None) m1 m2
@@ -91,6 +101,7 @@ let is_bot p = VariableMap.exists (fun _ v -> VD.leq v VD.bot && VD.leq VD.bot v
     | Plus (a1,a2) -> VD.add (evala a1 r) (evala a2 r)
     | Minus (a1,a2) -> VD.sub (evala a1 r) (evala a2 r)
     | Div (a1,a2) -> VD.div (evala a1 r) (evala a2 r)
+
   let assign x a p =
       let assignenvironment r = 
          (let assignvalue y v = if (y=x) then (evala a r) else v 
@@ -102,7 +113,7 @@ let is_bot p = VariableMap.exists (fun _ v -> VD.leq v VD.bot && VD.leq VD.bot v
     | Eq (a1,a2) -> VD.eq (evala a1 r) (evala a2 r)
     | Neq (a1,a2) -> VD.neq (evala a1 r) (evala a2 r)
     | Gt (a1,a2) -> VD.gt (evala a1 r) (evala a2 r)
-    | Nand (b1,b2) -> (not (evalb b1 r) && (evalb b2 r))
+    | Nand (b1,b2) -> not ((evalb b1 r) && (evalb b2 r))
 
   let widen m1 m2 = VariableMap.merge (fun _ v1 v2 ->
     match (v1, v2) with
@@ -122,7 +133,9 @@ let is_bot p = VariableMap.exists (fun _ v -> VD.leq v VD.bot && VD.leq VD.bot v
 
    (* let nottest b p = if not (evalb b p) then p else bot *) 
 
-   let test b p = 
+
+
+  let test b p = 
   match b with
   | Lt (Var x, Var y) ->
       let vx = lookup x p and vy = lookup y p in
@@ -191,9 +204,9 @@ let nottest b p = match b with
 
   
   
-   let stringofaP p = 
-           let stringofbinding x v s = "("^x^"="^(VD.to_string v)^")"^s in 
-           "{"^(VariableMap.fold stringofbinding p "")^"}"
+  let stringofaP p = 
+         let stringofbinding x v s = "("^x^"="^(VD.to_string v)^")"^s in 
+                    "{"^(VariableMap.fold stringofbinding p "")^"}"
 
    
 end
